@@ -1,0 +1,6 @@
+{
+  "version": "1.1.2",
+  "message": "Biometric login fix: account tap now triggers biometric immediately, button resets correctly, and WebAuthn compatibility improved.",
+  "forceUpdate": false,
+  "releasedAt": "2026-06-14"
+}
