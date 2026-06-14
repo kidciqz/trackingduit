@@ -280,6 +280,13 @@ input::placeholder{color:var(--t3)}
 .update-title{font-size:13px;font-weight:800;color:var(--blue);margin-bottom:3px}
 .update-msg{font-size:12px;color:var(--t2);line-height:1.4}
 .row-mini-btn{font-size:11px;font-weight:700;color:#fff;background:var(--blue);padding:6px 10px;border-radius:8px;margin-left:auto}
+.app-card{background:var(--surf);border-radius:var(--r16);overflow:hidden;box-shadow:var(--shadow);margin-bottom:10px}
+.app-beta{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:999px;background:var(--amber-l);color:var(--amber);font-size:9px;font-weight:800;letter-spacing:.4px;margin-left:6px;vertical-align:middle}
+.app-note{padding:10px 14px;border-top:1px solid var(--sep2);display:flex;gap:10px}
+.app-note-ic{font-size:16px;line-height:1.4}.app-note-t{font-size:12px;font-weight:700;line-height:1.4}.app-note-s{font-size:11px;color:var(--t2);line-height:1.45;margin-top:1px}
+.app-chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 12px}
+.app-chip{font-size:10px;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--surf2);color:var(--t2)}
+.user-update-banner{margin:0 0 10px}
 
 /* RESPONSIVE */
 @media(max-width:360px){.wallet-card{min-width:140px}.wc-balance{font-size:17px}}
@@ -544,6 +551,27 @@ input::placeholder{color:var(--t3)}
           </div>
         </div>
 
+        <div class="sec-lbl">App Updates</div>
+        <div class="update-banner user-update-banner" id="user-update-banner">
+          <div class="update-title" id="user-update-title">Update available</div>
+          <div class="update-msg" id="user-update-msg"></div>
+          <button class="btn btn-blue" onclick="applyLatestUpdate()">Backup & Refresh App</button>
+        </div>
+        <div class="app-card" id="app-info-card">
+          <div class="row" onclick="checkForPatch(true)">
+            <div class="ri" style="background:var(--amber-l)">🧪</div>
+            <div class="rm"><div class="rt">DuitKu <span class="app-beta">BETA</span></div><div class="rs" id="app-version-sub">Current version: loading...</div></div>
+            <span style="color:var(--t3)">↻</span>
+          </div>
+          <div class="row" onclick="showPatchNotes()">
+            <div class="ri" style="background:var(--blue-l)">✨</div>
+            <div class="rm"><div class="rt">What’s new & fixes</div><div class="rs" id="app-latest-sub">Shows latest patch notes after every update</div></div>
+            <span style="color:var(--t3)">›</span>
+          </div>
+          <div id="app-fix-list"></div>
+          <div class="app-chips"><span class="app-chip">Beta app</span><span class="app-chip">Patch notes</span><span class="app-chip">Safe backup before refresh</span></div>
+        </div>
+
         <div class="dev-panel" id="dev-panel">
           <div class="sec-lbl">Developer</div>
           <div id="dev-locked" style="background:var(--surf);border-radius:var(--r16);overflow:hidden;box-shadow:var(--shadow)">
@@ -758,12 +786,19 @@ input::placeholder{color:var(--t3)}
 // ══════════════════════════════════════════════
 
 // ══ APP PATCH / DEVELOPER CONFIG ══
-const APP_VERSION='1.1.2';
+const APP_VERSION='1.1.3';
 const PATCH_ENDPOINT='/patch/version.json';
 const DEV_EMAILS=['aimansyakirinpsa@gmail.com'];
 const DEV_PASSCODE='DuitKuDev2026!';
 const DEV_SESSION_KEY='dk_dev_unlocked';
 let LATEST_PATCH=null;
+const APP_STATUS='Beta';
+const LOCAL_CHANGELOG=[
+  {version:'1.1.3',title:'Beta version notes for all users',fixes:['Added App Updates section in Profile','Normal users can see current version, latest version, and fix history','Added visible Beta label for DuitKu']},
+  {version:'1.1.2',title:'Biometric login fix',fixes:['Tapping an account starts biometric login immediately','Biometric button resets after failed or cancelled attempt','Improved WebAuthn compatibility on phones']},
+  {version:'1.1.1',title:'Developer passcode protection',fixes:['Added developer passcode before showing patch tools','Developer tools are hidden from normal users']},
+  {version:'1.1.0',title:'Developer patch system',fixes:['Added version check using /patch/version.json','Added safe backup before refresh','Added service worker cache refresh support']}
+];
 const isDevEmail=()=>CU && DEV_EMAILS.includes(String(CU.email||'').toLowerCase());
 const isDev=()=>isDevEmail() && sessionStorage.getItem(DEV_SESSION_KEY)==='1';
 const verNum=v=>String(v||'0').split('.').map(x=>parseInt(x,10)||0);
@@ -799,19 +834,24 @@ async function checkForPatch(manual=false){
     localStorage.setItem('dk_last_patch_check',new Date().toISOString());
     if(newer){showUpdateBanner(latest); if(!manual)toast('New update available ✨')}
     else if(manual){toast('Already latest version ✓')}
+    renderAppInfo();
     renderDevPanel();
     return latest;
   }catch(err){
     if(manual)toast('Patch check failed');
     if(isDev())console.warn('Patch check failed:',err);
+    renderAppInfo();
     renderDevPanel();
   }
 }
 function showUpdateBanner(latest){
-  const b=document.getElementById('update-banner');if(!b)return;
-  b.classList.add('show');
-  document.getElementById('update-title').textContent='Update '+latest.version+' available';
-  document.getElementById('update-msg').textContent=latest.message||'A new patch is ready. Backup first, then refresh.';
+  const title='Update '+latest.version+' available';
+  const msg=latest.message||'A new patch is ready. Backup first, then refresh.';
+  const devB=document.getElementById('update-banner');
+  if(devB){devB.classList.add('show');document.getElementById('update-title').textContent=title;document.getElementById('update-msg').textContent=msg;}
+  const userB=document.getElementById('user-update-banner');
+  if(userB){userB.classList.add('show');document.getElementById('user-update-title').textContent=title;document.getElementById('user-update-msg').textContent=msg;}
+  renderAppInfo();
 }
 function backupBeforePatch(){
   if(!CU)return;
@@ -827,7 +867,15 @@ async function applyLatestUpdate(){
   setTimeout(()=>location.reload(),650);
 }
 function copyPatchTemplate(){
-  const tpl=JSON.stringify({version:APP_VERSION,message:'Bug fixes and UI improvements',forceUpdate:false,releasedAt:new Date().toISOString().slice(0,10)},null,2);
+  const tpl=JSON.stringify({
+    version:APP_VERSION,
+    appStatus:APP_STATUS,
+    message:'Bug fixes and UI improvements',
+    fixes:['Describe fix 1','Describe fix 2'],
+    changelog:LOCAL_CHANGELOG,
+    forceUpdate:false,
+    releasedAt:new Date().toISOString().slice(0,10)
+  },null,2);
   navigator.clipboard.writeText(tpl).then(()=>toast('version.json copied ✓')).catch(()=>{document.getElementById('dev-code').textContent=tpl;toast('Template shown below')});
 }
 function toggleDebugMode(){
@@ -848,6 +896,32 @@ function renderDevPanel(){
   if(sub)sub.textContent='Current version: '+APP_VERSION+(LATEST_PATCH?.version?' · Latest: '+LATEST_PATCH.version:'');
   const dbg=document.getElementById('debug-sub');if(dbg)dbg.textContent='Debug: '+(localStorage.getItem('dk_debug')==='1'?'On':'Off');
   const code=document.getElementById('dev-code');if(code)code.textContent='Patch endpoint: '+PATCH_ENDPOINT+' · Developer: '+(unlocked?CU.email:'locked');
+}
+function getVisibleChangelog(){
+  if(LATEST_PATCH?.changelog && Array.isArray(LATEST_PATCH.changelog))return LATEST_PATCH.changelog;
+  return LOCAL_CHANGELOG;
+}
+function patchFixText(p){
+  if(Array.isArray(p?.fixes))return p.fixes.join(' • ');
+  return p?.message||p?.title||'Bug fixes and improvements';
+}
+function renderAppInfo(){
+  const v=document.getElementById('app-version-sub');
+  if(!v)return;
+  const latest=LATEST_PATCH?.version||APP_VERSION;
+  const newer=LATEST_PATCH?.version && isNewerVersion(LATEST_PATCH.version,APP_VERSION);
+  v.textContent='Installed: v'+APP_VERSION+' · Latest: v'+latest+' · '+APP_STATUS+(newer?' · Update ready':'');
+  const last=getVisibleChangelog()[0]||{version:APP_VERSION,title:'Current patch',fixes:['Bug fixes and improvements']};
+  const sub=document.getElementById('app-latest-sub');
+  if(sub)sub.textContent='Latest: v'+last.version+' — '+(last.title||LATEST_PATCH?.message||'Bug fixes and improvements');
+  const list=document.getElementById('app-fix-list');
+  if(list){
+    list.innerHTML=getVisibleChangelog().slice(0,3).map((p,i)=>`<div class="app-note"><div class="app-note-ic">${i===0?'🆕':'🛠️'}</div><div><div class="app-note-t">v${esc(p.version||APP_VERSION)} · ${esc(p.title||'Patch update')}</div><div class="app-note-s">${esc(patchFixText(p))}</div></div></div>`).join('');
+  }
+}
+function showPatchNotes(){
+  const notes=getVisibleChangelog().map(p=>'v'+(p.version||APP_VERSION)+' - '+(p.title||'Patch update')+'\n• '+(Array.isArray(p.fixes)?p.fixes.join('\n• '):(p.message||'Bug fixes and improvements'))).join('\n\n');
+  alert('DuitKu Beta · What\'s New & Fixes\n\n'+notes);
 }
 
 const DB={
@@ -1623,6 +1697,7 @@ function renderProfile(){
   document.getElementById('p-email').textContent=CU.email;
   document.getElementById('s-cur').value=CUR;
   updateBioProfileUI();
+  renderAppInfo();
   renderDevPanel();
   const allTime=EX.reduce((s,e)=>s+e.amount,0);
   const mos=new Set(EX.map(e=>e.date.slice(0,7))).size;
