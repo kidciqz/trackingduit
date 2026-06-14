@@ -372,7 +372,7 @@ input::placeholder{color:var(--t3)}
 <div class="auth-wrap">
   <div class="auth-logo-ring">💸</div>
   <div class="auth-h1">DuitKu 💸</div>
-  <div class="auth-sub">salary · Wallet ·Expenses — all in one place</div>
+  <div class="auth-sub">Salary · Wallet ·Expenses — All in one place</div>
   <div class="auth-card">
     <div id="au-pick">
       <div id="upick-wrap"></div>
@@ -649,7 +649,7 @@ input::placeholder{color:var(--t3)}
       </div>
       <div class="ob-card-body">
         <div class="ob-step" id="ob-step">Step 1 of 4</div>
-        <div class="ob-title" id="ob-title">Hi,welcome to DuitKu!</div>
+        <div class="ob-title" id="ob-title">Hi, welcome to DuitKu!</div>
         <div class="ob-desc" id="ob-desc">Let's take a quick tour — just 4 simple steps to learn how to use this app.</div>
         <div class="ob-dots" id="ob-dots"></div>
         <div class="ob-actions">
@@ -679,7 +679,7 @@ input::placeholder{color:var(--t3)}
       <div class="bio-icon-ring" id="bio-icon-ring" style="background:var(--blue-l)">
         <span id="bio-icon">🔐</span>
       </div>
-      <div class="bio-title" id="bio-title">Let's active biometric</div>
+      <div class="bio-title" id="bio-title">Activate biometric</div>
       <div class="bio-sub" id="bio-sub">Use Face ID or your fingerprint to sign in faster and more securely.</div>
       <div class="bio-status" id="bio-status"></div>
       <button class="bio-btn-main" id="bio-main-btn" onclick="bioAction()">
@@ -968,12 +968,13 @@ const W_ICONS=['🏦','💳','📱','💰','🪙','🏧','💵','💸'];
 const W_COLORS=['#2563eb','#7c3aed','#0891b2','#16a34a','#d97706','#dc2626','#db2777','#0f172a'];
 let selWIcon=W_ICONS[0],selWColor=W_COLORS[0];
 
-function walletById(id){return WL.find(w=>w.id===id)}
 function walletBalance(wid){
-  // opening balance + salary allocation - expenses from this wallet (all time)
-  const w=walletById(wid);if(!w)return 0;
-  const spent=EX.filter(e=>e.wallet===wid).reduce((s,e)=>s+e.amount,0);
-  return (w.balance||0)-spent;
+  const w = walletById(wid);
+  if(!w) return 0;
+  const allocation = SAL.allocations?.[wid] || 0;
+  const spent = EX.filter(e => e.wallet === wid && e.date.startsWith(curM()))
+                  .reduce((s,e)=>s+e.amount,0);
+  return (w.balance || 0) + allocation - spent;
 }
 
 // ══ AUTH ══
@@ -2059,7 +2060,7 @@ const OB_SLIDES = [
     emoji:'💰', bg:'linear-gradient(135deg,#f0fdf4,#dcfce7)',
     step:'Salary & Wallet', title:'Set Your Salary & Allocate Funds',
     desc:'Enter your monthly salary, then distribute it across your bank, eWallet,  or any other saving accounts you use.',
-    btn:'Got it,Continue →'
+    btn:'Got it,continue →'
   },
   {
     emoji:'➕', bg:'linear-gradient(135deg,#faf5ff,#ede9fe)',
@@ -2172,7 +2173,7 @@ function obShowTip(idx){
   document.getElementById('ob-tt-desc').textContent = tip.desc;
 
   const isLast = idx === OB_TIPS.length - 1;
-  document.getElementById('ob-tt-btn').textContent = isLast ? 'Finsih! 🎉' : 'Next →';
+  document.getElementById('ob-tt-btn').textContent = isLast ? 'Finish! 🎉' : 'Next →';
 
   setTimeout(()=>tt.classList.add('show'), 80);
 }
