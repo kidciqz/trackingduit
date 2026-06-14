@@ -379,7 +379,7 @@ input::placeholder{color:var(--t3)}
 <div class="auth-wrap">
   <div class="auth-logo-ring">💸</div>
   <div class="auth-h1">DuitKu 💸</div>
-  <div class="auth-sub">salary · Wallet ·Expenses — all in one place</div>
+  <div class="auth-sub">Salary · Wallet · Expenses — all in one place</div>
   <div class="auth-card">
     <div id="au-pick">
       <div id="upick-wrap"></div>
@@ -674,7 +674,7 @@ input::placeholder{color:var(--t3)}
       </div>
       <div class="ob-card-body">
         <div class="ob-step" id="ob-step">Step 1 of 4</div>
-        <div class="ob-title" id="ob-title">Hi,welcome to DuitKu!</div>
+        <div class="ob-title" id="ob-title">Hi, welcome to DuitKu!</div>
         <div class="ob-desc" id="ob-desc">Let's take a quick tour — just 4 simple steps to learn how to use this app.</div>
         <div class="ob-dots" id="ob-dots"></div>
         <div class="ob-actions">
@@ -704,7 +704,7 @@ input::placeholder{color:var(--t3)}
       <div class="bio-icon-ring" id="bio-icon-ring" style="background:var(--blue-l)">
         <span id="bio-icon">🔐</span>
       </div>
-      <div class="bio-title" id="bio-title">Let's active biometric</div>
+      <div class="bio-title" id="bio-title">Let's activate biometric</div>
       <div class="bio-sub" id="bio-sub">Use Face ID or your fingerprint to sign in faster and more securely.</div>
       <div class="bio-status" id="bio-status"></div>
       <button class="bio-btn-main" id="bio-main-btn" onclick="bioAction()">
@@ -730,7 +730,7 @@ input::placeholder{color:var(--t3)}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="sf" style="margin-bottom:0"><label>Date</label><input type="date" id="a-date"/></div>
       <div class="sf" style="margin-bottom:0"><label>Type</label>
-        <select id="a-type"><option value="one-time">One-time</option><option value="recurring">🔄 Recurring</option></select>
+        <select id="a-type"><option value="one-time">One-time</option><option value="recurring">🔄 Recurring / Repeating</option></select>
       </div>
     </div>
     <div class="sf" style="margin-top:13px"><label>Note (optional)</label><input type="text" id="a-note" placeholder="Any details…"/></div>
@@ -811,13 +811,39 @@ input::placeholder{color:var(--t3)}
 // ══════════════════════════════════════════════
 
 // ══ APP PATCH / DEVELOPER CONFIG ══
-const APP_VERSION='1.1.4';
+const APP_VERSION='1.1.5';
 const PATCH_ENDPOINT='/patch/version.json';
 const DEV_EMAILS=['aimansyakirinpsa@gmail.com'];
 const DEV_PASSCODE='dev321';
 const DEV_SESSION_KEY='dk_dev_unlocked';
 let LATEST_PATCH=null;
 const APP_STATUS='Beta';
+const LOCAL_CHANGELOG=[
+  {
+    version:'1.1.5',
+    title:'Text, balance and safety fixes',
+    fixes:[
+      'Fixed onboarding and biometric wording mistakes',
+      'Fixed Analytics onboarding slide description',
+      'Wallet balance now includes salary allocation',
+      'Fixed salary usage percentage guard',
+      'Fixed allocation percentage display while editing salary',
+      'Fixed export sorting so it does not reorder app data',
+      'Fixed delete account flow and removes biometric references'
+    ],
+    releasedAt:'2026-06-14'
+  },
+  {
+    version:'1.1.4',
+    title:'Privacy & Data Notice',
+    fixes:[
+      'Added simple Privacy & Data Notice in Profile',
+      'Explained what is stored and where it is stored',
+      'Clarified DuitKu Beta is not a bank or e-wallet'
+    ],
+    releasedAt:'2026-06-14'
+  }
+];
 const isDevEmail=()=>CU && DEV_EMAILS.includes(String(CU.email||'').toLowerCase());
 const isDev=()=>isDevEmail() && sessionStorage.getItem(DEV_SESSION_KEY)==='1';
 const verNum=v=>String(v||'0').split('.').map(x=>parseInt(x,10)||0);
@@ -998,10 +1024,13 @@ let selWIcon=W_ICONS[0],selWColor=W_COLORS[0];
 
 function walletById(id){return WL.find(w=>w.id===id)}
 function walletBalance(wid){
-  // opening balance + salary allocation - expenses from this wallet (all time)
+  // Opening balance + current salary allocation - all expenses from this wallet.
+  // Note: DuitKu stores only the latest monthly allocation, not official bank deposits.
   const w=walletById(wid);if(!w)return 0;
-  const spent=EX.filter(e=>e.wallet===wid).reduce((s,e)=>s+e.amount,0);
-  return (w.balance||0)-spent;
+  const opening=Number(w.balance||0);
+  const allocated=Number(SAL.allocations?.[wid]||0);
+  const spent=EX.filter(e=>e.wallet===wid).reduce((s,e)=>s+Number(e.amount||0),0);
+  return opening+allocated-spent;
 }
 
 // ══ AUTH ══
@@ -1009,10 +1038,10 @@ let authMode='signin';
 function initAuth(){
   const users=DB.users();const w=document.getElementById('upick-wrap');
   if(!users.length){w.innerHTML='<p style="font-size:13px;color:var(--t2);text-align:center;padding:8px 0 12px">No accounts yet</p>';return}
-  w.innerHTML='<p style="font-size:12px;color:var(--t2);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Pilih akaun</p>'+
+  w.innerHTML='<p style="font-size:12px;color:var(--t2);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Choose account</p>'+
   users.map(u=>{
     const hasBio = BIO.supported() && BIO.enabled(u.id);
-    const badge  = hasBio ? `<div class="upick-bio">🔐 Biometrik</div>` : `<span style="color:var(--t3);font-size:18px">›</span>`;
+    const badge  = hasBio ? `<div class="upick-bio">🔐 Biometric</div>` : `<span style="color:var(--t3);font-size:18px">›</span>`;
     return `<div class="upick" onclick="qSign('${u.id}')">
       <div class="ava" style="background:${u.color}">${ini(u.name)}</div>
       <div style="flex:1"><div style="font-size:14px;font-weight:700">${esc(u.name)}</div><div style="font-size:12px;color:var(--t2)">${esc(u.email)}</div></div>
@@ -1089,12 +1118,30 @@ function login(u, isNew){
     }, 3200); // after onboarding slides start
   }
 }
-function signOut(){if(!confirm('Sign out?'))return;CU=null;sessionStorage.removeItem('p2_uid');document.getElementById('scr-app').classList.remove('active');document.getElementById('scr-auth').classList.add('active');goTab_norender('home');initAuth()}
+function signOut(){
+  if(!confirm('Sign out?'))return;
+  forceSignOut();
+}
+function forceSignOut(){
+  CU=null;
+  sessionStorage.removeItem('p2_uid');
+  sessionStorage.removeItem(DEV_SESSION_KEY);
+  document.getElementById('scr-app').classList.remove('active');
+  document.getElementById('scr-auth').classList.add('active');
+  goTab_norender('home');
+  initAuth();
+}
 function delAcc(){
+  if(!CU)return;
   if(!confirm('Delete your account and ALL data? This cannot be undone.'))return;
-  const users=DB.users().filter(u=>u.id!==CU.id);DB.saveUsers(users);
-  ['p2_e_','p2_w_','p2_b_','p2_s_','p2_c_'].forEach(k=>localStorage.removeItem(k+CU.id));
-  signOut();
+  const uid=CU.id;
+  const users=DB.users().filter(u=>u.id!==uid);DB.saveUsers(users);
+  [
+    'p2_e_','p2_w_','p2_b_','p2_s_','p2_c_',
+    'dk_bio_cred_','dk_bio_handle_'
+  ].forEach(k=>localStorage.removeItem(k+uid));
+  forceSignOut();
+  toast('Account deleted');
 }
 
 // ══ TABS ══
@@ -1237,27 +1284,29 @@ function renderHome(){
 // ══ WALLET SCROLL ══
 function renderWalletScroll(){
   const wrap=document.getElementById('wallets-scroll');
-  const salary=SAL.amount||0;
+  const salary=Number(SAL.amount||0);
   const m=curM();
-  const totalSpent=EX.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0);
+  const totalSpent=EX.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+Number(e.amount||0),0);
+  const totalBalance=WL.length?WL.reduce((s,w)=>s+walletBalance(w.id),0):(salary-totalSpent);
 
   let html='';
   // "Total" card
   html+=`<div class="wallet-card" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)" onclick="openSalSheet()">
     <div class="wc-icon">💳</div>
     <div class="wc-name">Total Balance</div>
-    <div class="wc-balance">${fmt(salary-totalSpent)}</div>
-    <div class="wc-allocated">of ${fmt(salary)} salary</div>
+    <div class="wc-balance">${fmt(totalBalance)}</div>
+    <div class="wc-allocated">${WL.length?'across '+WL.length+' wallet'+(WL.length>1?'s':''):'of '+fmt(salary)+' salary'}</div>
   </div>`;
 
   WL.forEach(w=>{
     const bal=walletBalance(w.id);
-    const wSpent=EX.filter(e=>e.wallet===w.id&&e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0);
+    const wSpent=EX.filter(e=>e.wallet===w.id&&e.date.startsWith(m)).reduce((s,e)=>s+Number(e.amount||0),0);
+    const alloc=Number(SAL.allocations?.[w.id]||0);
     html+=`<div class="wallet-card" style="background:${w.color}" onclick="goTab('wallets')">
       <div class="wc-icon">${w.icon}</div>
       <div class="wc-name">${esc(w.name)}</div>
       <div class="wc-balance">${fmt(bal)}</div>
-      <div class="wc-allocated">−${fmt(wSpent)} this month</div>
+      <div class="wc-allocated">${alloc?fmt(alloc)+' allocated · ':''}−${fmt(wSpent)} this month</div>
     </div>`;
   });
 
@@ -1267,8 +1316,11 @@ function renderWalletScroll(){
 
 // ══ WALLETS PAGE ══
 function renderWallets(){
-  const salary=SAL.amount||0;
+  const salary=Number(SAL.amount||0);
   const m=curM();
+  const monthSpent=EX.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+Number(e.amount||0),0);
+  const monthRemaining=Math.max(0,salary-monthSpent);
+  const usedPct=salary?Math.round(monthSpent/salary*100):0;
 
   // Salary config card
   document.getElementById('salary-config-card').innerHTML=`
@@ -1281,9 +1333,9 @@ function renderWallets(){
       <button class="btn btn-blue btn-sm" onclick="openSalSheet()">Edit</button>
     </div>
     ${salary?`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:10px;border-top:1px solid var(--sep2)">
-      <div><div style="font-size:15px;font-weight:800">${fmt(EX.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0))}</div><div style="font-size:10px;color:var(--t2)">Spent</div></div>
-      <div><div style="font-size:15px;font-weight:800;color:var(--green)">${fmt(Math.max(0,salary-EX.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0)))}</div><div style="font-size:10px;color:var(--t2)">Remaining</div></div>
-      <div><div style="font-size:15px;font-weight:800;color:var(--blue)">${Math.round(EX.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0)/salary*100)}%</div><div style="font-size:10px;color:var(--t2)">Used</div></div>
+      <div><div style="font-size:15px;font-weight:800">${fmt(monthSpent)}</div><div style="font-size:10px;color:var(--t2)">Spent</div></div>
+      <div><div style="font-size:15px;font-weight:800;color:var(--green)">${fmt(monthRemaining)}</div><div style="font-size:10px;color:var(--t2)">Remaining</div></div>
+      <div><div style="font-size:15px;font-weight:800;color:var(--blue)">${usedPct}%</div><div style="font-size:10px;color:var(--t2)">Used</div></div>
     </div>`:'<div style="font-size:13px;color:var(--t2)">Set your salary to track budget vs actual spending.</div>'}`;
 
   // Wallet detail list
@@ -1291,8 +1343,8 @@ function renderWallets(){
   if(!WL.length){wdl.innerHTML='<div class="empty"><div class="empty-ic">💳</div><div class="empty-t">No wallets yet</div><div class="empty-s">Add your bank accounts and e-wallets</div></div>';} else {
     wdl.innerHTML=WL.map(w=>{
       const bal=walletBalance(w.id);
-      const mSpent=EX.filter(e=>e.wallet===w.id&&e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0);
-      const alloc=SAL.allocations&&SAL.allocations[w.id]?SAL.allocations[w.id]:0;
+      const mSpent=EX.filter(e=>e.wallet===w.id&&e.date.startsWith(m)).reduce((s,e)=>s+Number(e.amount||0),0);
+      const alloc=Number(SAL.allocations?.[w.id]||0);
       return `<div class="bitem" style="border-left:4px solid ${w.color}">
         <div class="bi-head">
           <div class="bi-name"><span style="background:${w.color};width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff">${w.icon}</span>${esc(w.name)}</div>
@@ -1314,11 +1366,11 @@ function renderWallets(){
   const ac=document.getElementById('alloc-card');
   if(!salary||!WL.length){ac.innerHTML='<div style="font-size:13px;color:var(--t2)">Set your salary and add wallets to manage allocation.</div>';return}
   const allocs=SAL.allocations||{};
-  const allocTotal=Object.values(allocs).reduce((a,b)=>a+b,0);
+  const allocTotal=Object.values(allocs).reduce((a,b)=>a+Number(b||0),0);
   const unalloc=salary-allocTotal;
   ac.innerHTML=`<div class="card-title">Salary distribution</div>`+
   WL.map(w=>{
-    const a=allocs[w.id]||0;const pct=salary?Math.round(a/salary*100):0;
+    const a=Number(allocs[w.id]||0);const pct=salary?Math.round(a/salary*100):0;
     return `<div class="alloc-row">
       <div class="alloc-dot" style="background:${w.color}"></div>
       <div class="alloc-name">${w.icon} ${esc(w.name)}</div>
@@ -1437,14 +1489,17 @@ function closeAS(){document.getElementById('as-ov').classList.remove('open');doc
 function addExp(){
   const amt=parseFloat(document.getElementById('a-amt').value);
   const desc=document.getElementById('a-desc').value.trim();
-  const date=document.getElementById('a-date').value;
+  const date=document.getElementById('a-date').value||nowD();
   const note=document.getElementById('a-note').value.trim();
   const type=document.getElementById('a-type').value;
   if(!amt||amt<=0){toast('Enter a valid amount');return}
   if(!desc){toast('Add a description');return}
   EX.push({id:Date.now(),name:desc,amount:amt,cat:selCat,date,note,type,wallet:selWallet||null});
   save();closeAS();budAlert(selCat);toast('Expense added ✓');
-  renderHome();if(CT==='expenses')renderExp();
+  renderHome();
+  if(CT==='expenses')renderExp();
+  if(CT==='wallets')renderWallets();
+  if(CT==='analytics')renderAnalytics();
 }
 function budAlert(cat){
   if(!BU[cat])return;
@@ -1497,13 +1552,16 @@ function openSalSheet(){
 }
 function closeSalSheet(){document.getElementById('sal-ov').classList.remove('open');document.getElementById('sal-sheet').classList.remove('open')}
 function buildSalAllocRows(){
-  if(!WL.length)return;
+  const wrap=document.getElementById('sal-alloc-rows');
+  if(!wrap)return;
+  if(!WL.length){wrap.innerHTML='';updateAllocTotal();return}
   const allocs=SAL.allocations||{};
-  document.getElementById('sal-alloc-rows').innerHTML=WL.map(w=>`
+  wrap.innerHTML=WL.map(w=>`
     <div class="alloc-row">
       <div class="alloc-dot" style="background:${w.color}"></div>
       <div class="alloc-name">${w.icon} ${esc(w.name)}</div>
       <input class="alloc-input" id="alloc-${w.id}" type="number" placeholder="0" value="${allocs[w.id]||''}" oninput="updateAllocTotal()"/>
+      <div class="alloc-pct">0%</div>
     </div>`).join('');
   updateAllocTotal();
 }
@@ -1512,22 +1570,35 @@ function updateAllocTotal(){
   let total=0;
   WL.forEach(w=>{const inp=document.getElementById('alloc-'+w.id);if(inp)total+=parseFloat(inp.value)||0});
   const el=document.getElementById('sal-alloc-total');
-  el.textContent=fmt(total)+(sal?' / '+fmt(sal):'');
-  el.style.color=sal&&total>sal?'var(--red)':'var(--t1)';
-  // Update pct
-  if(sal){
-    WL.forEach(w=>{const inp=document.getElementById('alloc-'+w.id);if(!inp)return;const v=parseFloat(inp.value)||0;const pctEl=inp.nextElementSibling;if(pctEl)pctEl.textContent=Math.round(v/sal*100)+'%'});
+  if(el){
+    el.textContent=fmt(total)+(sal?' / '+fmt(sal):'');
+    el.style.color=sal&&total>sal?'var(--red)':'var(--t1)';
   }
+  // Update allocation percentage beside each input.
+  WL.forEach(w=>{
+    const inp=document.getElementById('alloc-'+w.id);if(!inp)return;
+    const v=parseFloat(inp.value)||0;
+    const pctEl=inp.nextElementSibling;
+    if(pctEl)pctEl.textContent=sal?Math.round(v/sal*100)+'%':'0%';
+  });
 }
 document.getElementById('sal-amt').addEventListener('input',function(){
-  buildSalAllocRows();
+  updateAllocTotal();
 });
 function saveSalary(){
   const amt=parseFloat(document.getElementById('sal-amt').value);
   const day=parseInt(document.getElementById('sal-day').value)||null;
   if(!amt||amt<=0){toast('Enter a valid salary amount');return}
   const allocs={};
-  WL.forEach(w=>{const inp=document.getElementById('alloc-'+w.id);if(inp){const v=parseFloat(inp.value)||0;if(v>0)allocs[w.id]=v;}});
+  let allocTotal=0;
+  WL.forEach(w=>{
+    const inp=document.getElementById('alloc-'+w.id);
+    if(inp){
+      const v=parseFloat(inp.value)||0;
+      if(v>0){allocs[w.id]=v;allocTotal+=v;}
+    }
+  });
+  if(allocTotal>amt){toast('Allocation cannot exceed salary');return}
   SAL={amount:amt,day,allocations:allocs};
   save();closeSalSheet();toast('Salary saved ✓');
   renderSalaryBar();renderWalletScroll();if(CT==='wallets')renderWallets();
@@ -1736,14 +1807,21 @@ function renderProfile(){
 function saveCur(){CUR=document.getElementById('s-cur').value;DB.saveCur(CU.id,CUR);toast('Currency updated ✓');renderHome()}
 
 // ══ EXPORT ══
+function csvCell(v){
+  const s=String(v??'');
+  return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
 function exportCSV(){
-  const rows=[['Date','Description','Category','Amount','Wallet','Type','Note'],...EX.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{const w=walletById(e.wallet);return[e.date,'"'+e.name+'"',e.cat,e.amount.toFixed(2),w?w.name:'',e.type||'one-time','"'+(e.note||'')+'"']})];
-  dl('expenses.csv',rows.map(r=>r.join(',')).join('\n'),'text/csv');toast('CSV exported ✓');
+  const rows=[['Date','Description','Category','Amount','Wallet','Type','Note'],...[...EX].sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{
+    const w=walletById(e.wallet);
+    return [e.date,e.name,e.cat,Number(e.amount||0).toFixed(2),w?w.name:'',e.type||'one-time',e.note||''];
+  })];
+  dl('expenses.csv',rows.map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv');toast('CSV exported ✓');
 }
 function exportJSON(){dl('duitku-backup.json',JSON.stringify({expenses:EX,wallets:WL,budgets:BU,salary:SAL},null,2),'application/json');toast('Backup exported ✓')}
 function importJSON(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.expenses)EX=d.expenses;if(d.wallets)WL=d.wallets;if(d.budgets)BU=d.budgets;if(d.salary)SAL=d.salary;save();renderHome();toast('Imported ✓')}catch{toast('Invalid file')}};r.readAsText(f);ev.target.value=''}
 function exportSheets(){
-  const rows=[['Date','Description','Category','Amount','Wallet','Type','Note'],...EX.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{const w=walletById(e.wallet);return[e.date,e.name,e.cat,e.amount.toFixed(2),w?w.name:'',e.type||'one-time',e.note||'']})];
+  const rows=[['Date','Description','Category','Amount','Wallet','Type','Note'],...[...EX].sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{const w=walletById(e.wallet);return[e.date,e.name,e.cat,Number(e.amount||0).toFixed(2),w?w.name:'',e.type||'one-time',e.note||'']})];
   const tsv=rows.map(r=>r.join('\t')).join('\n');
   navigator.clipboard.writeText(tsv).then(()=>{toast('Copied! Open Sheets & paste');setTimeout(()=>window.open('https://sheets.google.com/','_blank'),700)}).catch(()=>{dl('expenses.tsv',tsv,'text/tab-separated-values');toast('TSV downloaded')});
 }
@@ -2079,27 +2157,27 @@ let obIsNew = false;
 const OB_SLIDES = [
   {
     emoji:'👋', bg:'linear-gradient(135deg,#eff6ff,#dbeafe)',
-    step:'Selamat Datang', title:'Hi,welcome to DuitKu!',
-    desc:'This app helps you track your expenses, salary, and all your wallets/accounts in one organized place. ',
+    step:'Welcome', title:'Hi, welcome to DuitKu!',
+    desc:'This app helps you track your expenses, salary, and all your wallets/accounts in one organized place.',
     btn:'Next →'
   },
   {
     emoji:'💰', bg:'linear-gradient(135deg,#f0fdf4,#dcfce7)',
     step:'Salary & Wallet', title:'Set Your Salary & Allocate Funds',
-    desc:'Enter your monthly salary, then distribute it across your bank, eWallet,  or any other saving accounts you use.',
-    btn:'Got it,Continue →'
+    desc:'Enter your monthly salary, then distribute it across your bank, eWallet, or any other savings accounts you use.',
+    btn:'Got it, Continue →'
   },
   {
     emoji:'➕', bg:'linear-gradient(135deg,#faf5ff,#ede9fe)',
     step:'Add Expenses', title:'Record Expenses Easily',
     desc:'Tap the ＋ button in the center of the tab bar to record an expense. Select the wallet or account you used, and the balance will be automatically deducted.',
-    btn:'Great!  →'
+    btn:'Great! →'
   },
   {
     emoji:'📊', bg:'linear-gradient(135deg,#fff7ed,#ffedd5)',
     step:'Analytics & Budget', title:'Track & Manage Your Expenses',
-    desc:'Tap the + button in the center of the tab bar to record an expense. Select the wallet or account you used, and the balance will be deducted automatically.',
-    btn:'Try it Now! 🚀'
+    desc:'Use Analytics to review spending trends, category breakdowns, budget progress, and monthly patterns so you can manage expenses better.',
+    btn:'Try It Now! 🚀'
   }
 ];
 
@@ -2110,7 +2188,7 @@ const OB_TIPS = [
     offsetY:-80, offsetX:0
   },
   {
-    target:'salary-bar', title:'Header salary ', arrowDir:'up',
+    target:'salary-bar', title:'Salary Header', arrowDir:'up',
     desc:'Tap the 👁 icon to hide or show your salary amount. Tap the amount itself to edit it.',
     offsetY:10, offsetX:0
   },
@@ -2200,7 +2278,7 @@ function obShowTip(idx){
   document.getElementById('ob-tt-desc').textContent = tip.desc;
 
   const isLast = idx === OB_TIPS.length - 1;
-  document.getElementById('ob-tt-btn').textContent = isLast ? 'Finsih! 🎉' : 'Next →';
+  document.getElementById('ob-tt-btn').textContent = isLast ? 'Finish! 🎉' : 'Next →';
 
   setTimeout(()=>tt.classList.add('show'), 80);
 }
