@@ -1,6 +1,0 @@
-{
-  "version": "1.1.0",
-  "message": "Developer patch system added: update check, safe backup, and refresh cache.",
-  "forceUpdate": false,
-  "releasedAt": "2026-06-14"
-}
