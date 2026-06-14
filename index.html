@@ -288,6 +288,13 @@ input::placeholder{color:var(--t3)}
 .app-chip{font-size:10px;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--surf2);color:var(--t2)}
 .user-update-banner{margin:0 0 10px}
 
+.privacy-card{background:var(--surf);border-radius:var(--r16);overflow:hidden;box-shadow:var(--shadow);margin-bottom:10px}
+.privacy-note{padding:12px 14px;border-top:1px solid var(--sep2);font-size:12px;color:var(--t2);line-height:1.55}
+.privacy-note strong{color:var(--t1);font-weight:800}
+.privacy-list{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+.privacy-item{display:flex;gap:8px;align-items:flex-start}
+.privacy-item span:first-child{flex-shrink:0}
+
 /* RESPONSIVE */
 @media(max-width:360px){.wallet-card{min-width:140px}.wc-balance{font-size:17px}}
 
@@ -372,7 +379,7 @@ input::placeholder{color:var(--t3)}
 <div class="auth-wrap">
   <div class="auth-logo-ring">💸</div>
   <div class="auth-h1">DuitKu 💸</div>
-  <div class="auth-sub">Salary · Wallet ·Expenses — All in one place</div>
+  <div class="auth-sub">salary · Wallet ·Expenses — all in one place</div>
   <div class="auth-card">
     <div id="au-pick">
       <div id="upick-wrap"></div>
@@ -539,6 +546,24 @@ input::placeholder{color:var(--t3)}
           <div class="row" onclick="document.getElementById('imp-f').click()"><div class="ri" style="background:var(--purple-l)">📥</div><div class="rm"><div class="rt">Restore backup</div><div class="rs">Import JSON file</div></div><span style="color:var(--t3)">›</span></div>
           <input type="file" id="imp-f" accept=".json" style="display:none" onchange="importJSON(event)"/>
         </div>
+        <div class="sec-lbl">Privacy & Data Notice</div>
+        <div class="privacy-card">
+          <div class="row" onclick="showPrivacyNotice()">
+            <div class="ri" style="background:var(--teal-l)">🛡️</div>
+            <div class="rm"><div class="rt">How your data is stored</div><div class="rs">DuitKu Beta stores your data on this device, not in a bank system</div></div>
+            <span style="color:var(--t3)">›</span>
+          </div>
+          <div class="privacy-note">
+            <strong>DuitKu is currently in Beta and is not a bank, e-wallet, or financial institution.</strong>
+            <div class="privacy-list">
+              <div class="privacy-item"><span>📦</span><div><strong>Stored data:</strong> account details, expenses, wallets, salary/income, budgets, currency settings, backup files, patch status, and biometric sign-in reference.</div></div>
+              <div class="privacy-item"><span>📍</span><div><strong>Storage location:</strong> data is saved in this browser/device using local storage. Biometric verification is handled by the device/browser; DuitKu does not store your face or fingerprint.</div></div>
+              <div class="privacy-item"><span>👤</span><div><strong>Access:</strong> people with access to this device/browser profile may access the data. The developer cannot view your data unless you export or share it.</div></div>
+              <div class="privacy-item"><span>📤</span><div><strong>Control:</strong> use Export CSV, Backup all data, Restore backup, or Delete account & data in this Profile page.</div></div>
+            </div>
+          </div>
+        </div>
+
         <div class="sec-lbl">Security</div>
         <div style="background:var(--surf);border-radius:var(--r16);overflow:hidden;box-shadow:var(--shadow)">
           <div class="bio-toggle-row" onclick="bioToggleFromProfile()">
@@ -649,7 +674,7 @@ input::placeholder{color:var(--t3)}
       </div>
       <div class="ob-card-body">
         <div class="ob-step" id="ob-step">Step 1 of 4</div>
-        <div class="ob-title" id="ob-title">Hi, welcome to DuitKu!</div>
+        <div class="ob-title" id="ob-title">Hi,welcome to DuitKu!</div>
         <div class="ob-desc" id="ob-desc">Let's take a quick tour — just 4 simple steps to learn how to use this app.</div>
         <div class="ob-dots" id="ob-dots"></div>
         <div class="ob-actions">
@@ -679,7 +704,7 @@ input::placeholder{color:var(--t3)}
       <div class="bio-icon-ring" id="bio-icon-ring" style="background:var(--blue-l)">
         <span id="bio-icon">🔐</span>
       </div>
-      <div class="bio-title" id="bio-title">Activate biometric</div>
+      <div class="bio-title" id="bio-title">Let's active biometric</div>
       <div class="bio-sub" id="bio-sub">Use Face ID or your fingerprint to sign in faster and more securely.</div>
       <div class="bio-status" id="bio-status"></div>
       <button class="bio-btn-main" id="bio-main-btn" onclick="bioAction()">
@@ -786,19 +811,13 @@ input::placeholder{color:var(--t3)}
 // ══════════════════════════════════════════════
 
 // ══ APP PATCH / DEVELOPER CONFIG ══
-const APP_VERSION='1.1.3';
+const APP_VERSION='1.1.4';
 const PATCH_ENDPOINT='/patch/version.json';
 const DEV_EMAILS=['aimansyakirinpsa@gmail.com'];
-const DEV_PASSCODE='DuitKuDev2026!';
+const DEV_PASSCODE='dev321';
 const DEV_SESSION_KEY='dk_dev_unlocked';
 let LATEST_PATCH=null;
 const APP_STATUS='Beta';
-const LOCAL_CHANGELOG=[
-  {version:'1.1.3',title:'Beta version notes for all users',fixes:['Added App Updates section in Profile','Normal users can see current version, latest version, and fix history','Added visible Beta label for DuitKu']},
-  {version:'1.1.2',title:'Biometric login fix',fixes:['Tapping an account starts biometric login immediately','Biometric button resets after failed or cancelled attempt','Improved WebAuthn compatibility on phones']},
-  {version:'1.1.1',title:'Developer passcode protection',fixes:['Added developer passcode before showing patch tools','Developer tools are hidden from normal users']},
-  {version:'1.1.0',title:'Developer patch system',fixes:['Added version check using /patch/version.json','Added safe backup before refresh','Added service worker cache refresh support']}
-];
 const isDevEmail=()=>CU && DEV_EMAILS.includes(String(CU.email||'').toLowerCase());
 const isDev=()=>isDevEmail() && sessionStorage.getItem(DEV_SESSION_KEY)==='1';
 const verNum=v=>String(v||'0').split('.').map(x=>parseInt(x,10)||0);
@@ -924,6 +943,15 @@ function showPatchNotes(){
   alert('DuitKu Beta · What\'s New & Fixes\n\n'+notes);
 }
 
+function showPrivacyNotice(){
+  alert('DuitKu Beta · Privacy & Data Notice\n\n'+
+    'DuitKu is a personal expense tracker only. It is not a bank, e-wallet, payment service, or financial institution. Do not treat DuitKu balances as official bank/e-wallet balances.\n\n'+
+    'What is stored:\n• Your account name/email and app login data\n• Expenses, wallets, salary/income, budgets and currency settings\n• Backup/restore files, patch/update status and biometric sign-in reference\n\n'+
+    'Where it is stored:\n• Data is stored locally in this browser/device using local storage.\n• Biometric sign-in is handled by your device/browser. DuitKu does not store your face or fingerprint.\n\n'+
+    'Who can access it:\n• Anyone who can access this device/browser profile may be able to access the data.\n• The developer cannot see your personal data unless you export it or share it.\n\n'+
+    'Your controls:\n• Export CSV for expenses.\n• Backup all data as JSON.\n• Restore backup from JSON.\n• Delete account & data from this device/browser.');
+}
+
 const DB={
   users:()=>JSON.parse(localStorage.getItem('p2_users')||'[]'),
   saveUsers:u=>localStorage.setItem('p2_users',JSON.stringify(u)),
@@ -968,13 +996,12 @@ const W_ICONS=['🏦','💳','📱','💰','🪙','🏧','💵','💸'];
 const W_COLORS=['#2563eb','#7c3aed','#0891b2','#16a34a','#d97706','#dc2626','#db2777','#0f172a'];
 let selWIcon=W_ICONS[0],selWColor=W_COLORS[0];
 
+function walletById(id){return WL.find(w=>w.id===id)}
 function walletBalance(wid){
-  const w = walletById(wid);
-  if(!w) return 0;
-  const allocation = SAL.allocations?.[wid] || 0;
-  const spent = EX.filter(e => e.wallet === wid && e.date.startsWith(curM()))
-                  .reduce((s,e)=>s+e.amount,0);
-  return (w.balance || 0) + allocation - spent;
+  // opening balance + salary allocation - expenses from this wallet (all time)
+  const w=walletById(wid);if(!w)return 0;
+  const spent=EX.filter(e=>e.wallet===wid).reduce((s,e)=>s+e.amount,0);
+  return (w.balance||0)-spent;
 }
 
 // ══ AUTH ══
@@ -2060,7 +2087,7 @@ const OB_SLIDES = [
     emoji:'💰', bg:'linear-gradient(135deg,#f0fdf4,#dcfce7)',
     step:'Salary & Wallet', title:'Set Your Salary & Allocate Funds',
     desc:'Enter your monthly salary, then distribute it across your bank, eWallet,  or any other saving accounts you use.',
-    btn:'Got it,continue →'
+    btn:'Got it,Continue →'
   },
   {
     emoji:'➕', bg:'linear-gradient(135deg,#faf5ff,#ede9fe)',
@@ -2173,7 +2200,7 @@ function obShowTip(idx){
   document.getElementById('ob-tt-desc').textContent = tip.desc;
 
   const isLast = idx === OB_TIPS.length - 1;
-  document.getElementById('ob-tt-btn').textContent = isLast ? 'Finish! 🎉' : 'Next →';
+  document.getElementById('ob-tt-btn').textContent = isLast ? 'Finsih! 🎉' : 'Next →';
 
   setTimeout(()=>tt.classList.add('show'), 80);
 }
