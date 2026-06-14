@@ -1,14 +1,25 @@
 {
-  "version": "1.1.3",
+  "version": "1.1.4",
   "appStatus": "Beta",
-  "message": "Added App Updates for normal users: beta label, installed/latest version, and fix history in Profile.",
+  "message": "Added a simple Privacy & Data Notice explaining local storage, access, export/delete controls, and that DuitKu is not a bank or e-wallet.",
   "fixes": [
-    "Normal users can see DuitKu Beta status in Profile",
-    "Added installed version and latest version display",
-    "Added What’s New & Fixes history for every patch",
-    "Update banner now appears for normal users too, not only developer tools"
+    "Added Privacy & Data Notice for normal users in Profile",
+    "Explains what data is stored: account, expenses, wallets, salary/income, budgets, settings, backups, patch status, and biometric reference",
+    "Explains data is stored locally in the browser/device using local storage",
+    "Explains who can access it and how users can export, backup, restore, or delete their data",
+    "Clarifies DuitKu Beta is not a bank, e-wallet, payment service, or financial institution"
   ],
   "changelog": [
+    {
+      "version": "1.1.4",
+      "title": "Privacy & Data Notice",
+      "fixes": [
+        "Added simple Privacy & Data Notice for all users",
+        "Explains what data is stored and where it is stored",
+        "Explains export, backup, restore, and delete controls",
+        "Clarifies DuitKu Beta is not a bank or e-wallet"
+      ]
+    },
     {
       "version": "1.1.3",
       "title": "Beta version notes for all users",
